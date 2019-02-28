@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="deploy" name="ButtonBoard" basedir=".">
+    <!--this file was created by Eclipse Runnable JAR file Export Wizard-->
+    <!--ANT 1.7 is required-->
+    <!--define folder properties-->
+	
+	<!-- Raspberry Pi info -->
+	<property name="hostname" value="PiZero001.local" />
+	<property name="username" value="pi" />
+	<property name="password" value="raspberry" />
+
+    <property name="src.dir"   value="${basedir}/src" />
+    <property name="lib.dir"   value="${basedir}/libs" />
+    <property name="class.dir" value="${basedir}/classes" />
+    <property name="bin.dir"   value="${basedir}/bin" />
+	
+	<path id="classpath">
+		<fileset dir="${lib.dir}/">
+			<include name="RXTXcomm.jar" />
+			<include name="pi4j-core.jar" />
+			<include name="commons-lang3-3.8.1.jar" />
+		</fileset>
+	</path>
+	
+	<target name="clean" >
+		<delete dir="${bin.dir}" />
+		<delete dir="${class.dir}" />
+	</target>
+
+    <target name="build" depends="clean">
+    	<mkdir dir="${class.dir}" />
+        <javac destdir="${class.dir}" nowarn="true" includeantruntime="false" debug="true" >
+        	<src path="${src.dir}" /> 
+        	<classpath refid="classpath" />
+    	</javac>
+	</target>
+        	
+    <target name="jar" depends="build">
+    	<mkdir dir="${bin.dir}" />
+         <jar destfile="${bin.dir}/${ant.project.name}.jar" basedir="${class.dir}">
+            <zipgroupfileset dir="${lib.dir}" includes="*.jar" />
+         	<manifest>
+                <attribute name="Main-Class" value="org.frc4453.tools.ButtonBoard"/>           	
+            </manifest>
+        </jar>
+    </target>
+	
+	<target name="deploy" depends="jar">
+		<sshexec command="mkdir -p ~/${ant.project.name}" host="${hostname}" username="${username}" password="${password}" trust="yes"/>
+		<scp todir="${username}:${password}@${hostname}:~/${ant.project.name}/" trust="yes">
+			<fileset dir="${basedir}/bin/">
+				<include name="${ant.project.name}.jar" />
+			</fileset>
+			<fileset dir="${basedir}/misc/">
+				<include name="${ant.project.name}.sh" />
+			</fileset>
+		</scp>
+		<sshexec command="chmod +x ~/${ant.project.name}/${ant.project.name}.sh" host="${hostname}" username="${username}" password="${password}" trust="yes"/>
+	</target>
+</project>
