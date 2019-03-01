@@ -30,3 +30,8 @@ dependencies {
 	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.1'
 }
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.frc4453.tools.ButtonBoard'
+    }
+}
