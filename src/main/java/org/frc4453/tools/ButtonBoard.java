@@ -56,53 +56,11 @@ public class ButtonBoard {
 		}
 	};
 	
-	/*
-	 * #%L **********************************************************************
-	 * ORGANIZATION : Pi4J PROJECT : Pi4J :: Java Examples FILENAME :
-	 * GpioListenAllExample.java
-	 *
-	 * This file is part of the Pi4J project. More information about this project
-	 * can be found here: http://www.pi4j.com/
-	 * ********************************************************************** %%
-	 * Copyright (C) 2012 - 2016 Pi4J %% This program is free software: you can
-	 * redistribute it and/or modify it under the terms of the GNU Lesser General
-	 * Public License as published by the Free Software Foundation, either version 3
-	 * of the License, or (at your option) any later version.
-	 *
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the GNU General Lesser Public License for more
-	 * details.
-	 *
-	 * You should have received a copy of the GNU General Lesser Public License
-	 * along with this program. If not, see
-	 * <http://www.gnu.org/licenses/lgpl-3.0.html>. #L%
-	 */
-
-	/**
-	 * This example code demonstrates how to setup a listener for all available GPIO
-	 * pins on the RaspberryPi (by specific model).
-	 *
-	 * @author Robert Savage
-	 */
-
-	/**
-	 * [ARGUMENT/OPTION "--pull (up|down|off)" | "-l (up|down|off)" | "--up" |
-	 * "--down" ] This example program accepts an optional argument for specifying
-	 * pin pull resistance. Supported values: "up|down" (or simply "1|0"). If no
-	 * value is specified in the command argument, then the pin pull resistance will
-	 * be set to PULL_UP by default. -- EXAMPLES: "--pull up", "-pull down", "--pull
-	 * off", "--up", "--down", "-pull 0", "--pull 1", "-l up", "-l down".
-	 *
-	 * @param args
-	 * @throws InterruptedException
-	 * @throws PlatformAlreadyAssignedException
-	 * @throws IOException
-	 */
+	
 	public static void main(String args[]) throws InterruptedException, PlatformAlreadyAssignedException, IOException {
-		System.out.println("<-- The Pi4J Project -->\nGPIO Listen (All Pins) Example");
+		System.out.println("Starting ButtonBoard..");
 
-		System.out.println("Opening file: "+devHID);
+		System.out.println("Opening HID device: "+devHID);
 		out = new FileWriter(devHID);		
 
 		// create GPIO controller
@@ -136,13 +94,8 @@ public class ButtonBoard {
 			}
 		}
 
-		System.out.println(" ... GPIO pins provisioned and ready for use.");
+		System.out.println("GPIO Setup, registering listener...");
 
-		// --------------------------------
-		// EVENT-BASED GPIO PIN MONITORING
-		// --------------------------------
-
-		// create and register gpio pin listeners for event pins
 		gpio.addListener(new GpioPinListenerDigital() {
 			@Override
 			public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
@@ -184,10 +137,12 @@ public class ButtonBoard {
 				}
 
 				// display pin state on console
-				System.out.println(" --> GPIO PIN STATE CHANGE (EVENT): " + event.getPin() + " = " + event.getState());
+				System.out.println("Button event: " + event.getPin() + " = " + event.getState());
 
 			}
 		}, provisionedPins.toArray(new GpioPinDigitalInput[0]));
+
+		System.out.println("ButtonBoard ready!");
 
 		// keep program running until user aborts (CTRL-C)
 		while (true) {
@@ -207,7 +162,6 @@ public class ButtonBoard {
 			out.flush();
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
