@@ -2,14 +2,8 @@ package org.frc4453.tools;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
@@ -19,8 +13,10 @@ import com.pi4j.io.gpio.PinPullResistance;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
-
 import com.pi4j.platform.PlatformAlreadyAssignedException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ButtonBoard {
 
@@ -61,8 +57,6 @@ public class ButtonBoard {
 	
 	
 	public static void main(String args[]) throws InterruptedException, PlatformAlreadyAssignedException, IOException {
-		
-		
 		logger.info("Starting ButtonBoard...");
 
 		logger.debug("Opening HID device: " + devHID);
@@ -77,24 +71,16 @@ public class ButtonBoard {
 		// create GPIO controller
 		final GpioController gpio = GpioFactory.getInstance();
 
-		// create pins collection to store provisioned pin instances
-		List<GpioPinDigitalInput> provisionedPins = new ArrayList<>();
-		Pin[] pins;
-
-		// get a collection of raw pins based
-		pins = RaspiPin.allPins();
-		pins = ArrayUtils.removeElement(pins, RaspiPin.GPIO_00); // Can not address/send button 0 via USB
-		pins = ArrayUtils.removeElement(pins, RaspiPin.GPIO_08); // Can pull down
-		pins = ArrayUtils.removeElement(pins, RaspiPin.GPIO_09); // Can pull down
-		pins = ArrayUtils.removeElement(pins, RaspiPin.GPIO_30); // Can pull down
-		pins = ArrayUtils.removeElement(pins, RaspiPin.GPIO_31); // Can pull down
-
 		// provision GPIO input pins with its internal pull down resistor set and
 		// debounce 1000ms
-		for (Pin pin : pins) {
+		for (Pin pin : msg.keySet()) {
 			try {
+				if(pin.getSupportedPinPullResistance().contains(PinPullResistance.PULL_DOWN)) {
+					logger.error("Pin " + pin + " does not support pulldown, please use another.");
+					return;
+				}
+				
 				GpioPinDigitalInput provisionedPin = gpio.provisionDigitalInputPin(pin, PinPullResistance.PULL_DOWN);
-				provisionedPins.add(provisionedPin);
 
 				provisionedPin.setDebounce(MS_DEBOUNCE);
 
@@ -141,14 +127,12 @@ public class ButtonBoard {
 					} catch (IOException | InterruptedException e) {
 						logger.error(e.getMessage());
 					}
-					
-
 				}
 
 				// display pin state on console
 				logger.debug("Button event: " + event.getPin() + " = " + event.getState());
 			}
-		}, provisionedPins.toArray(new GpioPinDigitalInput[0]));
+		}, msg.keySet().toArray(new GpioPinDigitalInput[0]));
 
 		logger.info("ButtonBoard ready!");
 
