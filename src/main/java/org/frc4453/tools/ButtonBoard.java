@@ -174,7 +174,7 @@ public class ButtonBoard {
 
 					// write message to host computer
 					try {
-						writeReport(endReport);
+						writeReport(msgReport);
 					} catch (IOException | InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
