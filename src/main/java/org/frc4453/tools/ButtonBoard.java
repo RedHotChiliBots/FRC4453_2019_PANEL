@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
@@ -32,6 +34,8 @@ public class ButtonBoard {
 	final static int MS_DEBOUNCE = 1000;
 
 	static FileOutputStream out = null;
+
+	static final Logger logger = LogManager.getLogger(ButtonBoard.class.getName());
 
 	final static Map<Pin, Integer> msg = new HashMap<Pin, Integer>() {
 		private static final long serialVersionUID = 1L;
@@ -100,9 +104,9 @@ public class ButtonBoard {
 	 * @throws IOException
 	 */
 	public static void main(String args[]) throws InterruptedException, PlatformAlreadyAssignedException, IOException {
-		System.out.println("<-- The Pi4J Project -->\nGPIO Listen (All Pins) Example");
+		logger.info("Button Board starting...");
 
-		System.out.println("Opening file: "+devHID);
+		logger.info("Opening file: "+devHID);
 		out = new FileOutputStream(devHID);		
 
 		// create GPIO controller
