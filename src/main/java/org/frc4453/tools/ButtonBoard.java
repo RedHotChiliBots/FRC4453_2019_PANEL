@@ -1,6 +1,6 @@
 package org.frc4453.tools;
 
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,20 +19,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class ButtonBoard {
-
 	final static Logger logger = LogManager.getLogger(ButtonBoard.class);
-
-	static char[] msgReport = new char[] { '\0', '\0'};
-	final static char[] endReport = new char[] { '\0', '\0'};
+	static FileOutputStream out = null;
+	
+	static byte[] msgReport = new byte[] { 0, 0};
 
 	final static String devHID = "/dev/hidg0";
 
 	final static int NUM_BUTTONS = 20;
 	final static int MS_DEBOUNCE = 1000;
 
-	static FileWriter out = null;
-
-	final static Map<Pin, Integer> msg = new HashMap<Pin, Integer>() {
+	static final Map<Pin, Integer> msg = new HashMap<Pin, Integer>() {
 		private static final long serialVersionUID = 1L;
 		{
 			put(RaspiPin.GPIO_01, 1);
@@ -61,7 +58,7 @@ public class ButtonBoard {
 
 		logger.debug("Opening HID device: " + devHID);
 		try{
-			out = new FileWriter(devHID);		
+			out = new FileOutputStream(devHID);		
 		} catch (Exception ex) {
 			logger.error(ex.getMessage());
 			return;
@@ -97,40 +94,40 @@ public class ButtonBoard {
 			@Override
 			public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
 
+				// display pin state on console
+				logger.info("GPIO Pin state change: " + event.getPin() + " = " + event.getState());
+
 				// Get button address and collapse removing unused buttons
 				Pin pin = event.getPin().getPin();
-								
+
 				if (event.getState().isHigh()) {
 					logger.debug("Setting button on USB");
 
 					// shift button into message
-						msgReport[1] |= (char) ((msg.get(pin) >>> 8) & 0x00ff);
-						msgReport[0] |= (char) (msg.get(pin) & 0x00ff);						
+						msgReport[1] |= (byte) ((msg.get(pin) >>> 8) & 0x00ff);
+						msgReport[0] |= (byte) (msg.get(pin) & 0x00ff);						
 									
 					// write message to host computer
 					try {
 						writeReport(msgReport);
 					} catch (IOException | InterruptedException e) {
-						logger.error(e.getMessage());
+						logger.error("Writing report", e);
 					}
 
 				} else {
 					logger.debug("Resetting button on USB");	
 
 					// shift button into message
-					msgReport[1] &= (char) ~((msg.get(pin) >>> 8) & 0x00ff);
-					msgReport[0] &= (char) ~(msg.get(pin) & 0x00ff);						
+					msgReport[1] &= (byte) ~((msg.get(pin) >>> 8) & 0x00ff);
+					msgReport[0] &= (byte) ~(msg.get(pin) & 0x00ff);						
 
 					// write message to host computer
 					try {
 						writeReport(msgReport);
 					} catch (IOException | InterruptedException e) {
-						logger.error(e.getMessage());
+						logger.error("Writing report", e);
 					}
 				}
-
-				// display pin state on console
-				logger.debug("Button event: " + event.getPin() + " = " + event.getState());
 			}
 		}, msg.keySet().toArray(new GpioPinDigitalInput[0]));
 
@@ -142,19 +139,15 @@ public class ButtonBoard {
 		}
 	}
 
-	static public void writeReport(char[] report) throws IOException, InterruptedException {
-
-		logger.trace("Sending bytes:");
-		logger.trace(String.format("0: 0x%08X", (int)report[0]));
-		logger.trace(String.format("1: 0x%08X", (int)report[1]));
+	static public void writeReport(byte[] report) throws IOException, InterruptedException {
+		logger.trace("Sending bytes: 0: 0x%08X 1: 0x%08X", (short)report[0], (short)report[1]);
 
 		try {
 			out.write(report);
 			out.flush();
 
 		} catch (IOException e) {
-			logger.error(e.getMessage());
+			logger.error("Writing USB", e);
 		}
-
 	}
 }
