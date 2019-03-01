@@ -25,19 +25,18 @@ import com.pi4j.platform.PlatformAlreadyAssignedException;
 
 public class ButtonBoard {
 
+	static FileOutputStream out = null;
+	
 	static byte[] msgReport = new byte[] { 0, 0};
-	final static byte[] endReport = new byte[] { 0, 0};
 
 	final static String devHID = "/dev/hidg0";
 
 	final static int NUM_BUTTONS = 20;
 	final static int MS_DEBOUNCE = 1000;
 
-	static FileOutputStream out = null;
+	final static Logger logger = LogManager.getLogger(ButtonBoard.class.getName());
 
-	static final Logger logger = LogManager.getLogger(ButtonBoard.class.getName());
-
-	final static Map<Pin, Integer> msg = new HashMap<Pin, Integer>() {
+	static final Map<Pin, Integer> msg = new HashMap<Pin, Integer>() {
 		private static final long serialVersionUID = 1L;
 		{
 			put(RaspiPin.GPIO_01, 1);
@@ -136,11 +135,11 @@ public class ButtonBoard {
 				// unexport the provisioned GPIO pins when program exits
 				provisionedPin.setShutdownOptions(true);
 			} catch (Exception ex) {
-				System.err.println(ex.getMessage());
+				logger.error("Provisioning Pins", ex);
 			}
 		}
 
-		System.out.println(" ... GPIO pins provisioned and ready for use.");
+		logger.info("GPIO pins provisioned and ready for use.");
 
 		// --------------------------------
 		// EVENT-BASED GPIO PIN MONITORING
@@ -151,11 +150,14 @@ public class ButtonBoard {
 			@Override
 			public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
 
+				// display pin state on console
+				logger.info("GPIO Pin state change: " + event.getPin() + " = " + event.getState());
+
 				// Get button address and collapse removing unused buttons
 				Pin pin = event.getPin().getPin();
-								
+
 				if (event.getState().isHigh()) {
-					System.out.println("Setting button on USB");
+					logger.info("Setting button on USB");
 
 					// shift button into message
 						msgReport[1] |= (byte) ((msg.get(pin) >>> 8) & 0x00ff);
@@ -165,12 +167,11 @@ public class ButtonBoard {
 					try {
 						writeReport(msgReport);
 					} catch (IOException | InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						logger.error("Writing report", e);
 					}
 
 				} else {
-					System.out.println("Resetting button on USB");	
+					logger.info("Resetting button on USB");	
 
 					// shift button into message
 					msgReport[1] &= (byte) ~((msg.get(pin) >>> 8) & 0x00ff);
@@ -180,16 +181,9 @@ public class ButtonBoard {
 					try {
 						writeReport(msgReport);
 					} catch (IOException | InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						logger.error("Writing report", e);
 					}
-					
-
 				}
-
-				// display pin state on console
-				System.out.println(" --> GPIO PIN STATE CHANGE (EVENT): " + event.getPin() + " = " + event.getState());
-
 			}
 		}, provisionedPins.toArray(new GpioPinDigitalInput[0]));
 
@@ -201,19 +195,14 @@ public class ButtonBoard {
 
 	static public void writeReport(byte[] report) throws IOException, InterruptedException {
 
-		System.out.println("Sending bytes:");
-		System.out.println(String.format("0: 0x%08X", (int)report[0]));
-		System.out.println(String.format("1: 0x%08X", (int)report[1]));
+		logger.info("Sending bytes: 0: 0x%08X 1: 0x%08X", (short)report[0], (short)report[1]);
 
 		try {
 			out.write(report);
-			System.out.println(report);
 			out.flush();
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Writing USB", e);
 		}
-
 	}
 }
