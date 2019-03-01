@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
@@ -20,8 +22,9 @@ import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 
 import com.pi4j.platform.PlatformAlreadyAssignedException;
 
-
 public class ButtonBoard {
+
+	final static Logger logger = LogManager.getLogger(ButtonBoard.class);
 
 	static char[] msgReport = new char[] { '\0', '\0'};
 	final static char[] endReport = new char[] { '\0', '\0'};
@@ -58,11 +61,19 @@ public class ButtonBoard {
 	
 	
 	public static void main(String args[]) throws InterruptedException, PlatformAlreadyAssignedException, IOException {
-		System.out.println("Starting ButtonBoard..");
+		
+		
+		logger.info("Starting ButtonBoard...");
 
-		System.out.println("Opening HID device: "+devHID);
-		out = new FileWriter(devHID);		
+		logger.debug("Opening HID device: " + devHID);
+		try{
+			out = new FileWriter(devHID);		
+		} catch (Exception ex) {
+			logger.error(ex.getMessage());
+			return;
+		}
 
+		logger.debug("Provisioning GPIO pins...");
 		// create GPIO controller
 		final GpioController gpio = GpioFactory.getInstance();
 
@@ -90,11 +101,11 @@ public class ButtonBoard {
 				// unexport the provisioned GPIO pins when program exits
 				provisionedPin.setShutdownOptions(true);
 			} catch (Exception ex) {
-				System.err.println(ex.getMessage());
+				logger.error(ex.getMessage());
 			}
 		}
 
-		System.out.println("GPIO Setup, registering listener...");
+		logger.debug("Registering listener...");
 
 		gpio.addListener(new GpioPinListenerDigital() {
 			@Override
@@ -104,7 +115,7 @@ public class ButtonBoard {
 				Pin pin = event.getPin().getPin();
 								
 				if (event.getState().isHigh()) {
-					System.out.println("Setting button on USB");
+					logger.debug("Setting button on USB");
 
 					// shift button into message
 						msgReport[1] |= (char) ((msg.get(pin) >>> 8) & 0x00ff);
@@ -114,12 +125,11 @@ public class ButtonBoard {
 					try {
 						writeReport(msgReport);
 					} catch (IOException | InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						logger.error(e.getMessage());
 					}
 
 				} else {
-					System.out.println("Resetting button on USB");	
+					logger.debug("Resetting button on USB");	
 
 					// shift button into message
 					msgReport[1] &= (char) ~((msg.get(pin) >>> 8) & 0x00ff);
@@ -129,20 +139,18 @@ public class ButtonBoard {
 					try {
 						writeReport(msgReport);
 					} catch (IOException | InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						logger.error(e.getMessage());
 					}
 					
 
 				}
 
 				// display pin state on console
-				System.out.println("Button event: " + event.getPin() + " = " + event.getState());
-
+				logger.debug("Button event: " + event.getPin() + " = " + event.getState());
 			}
 		}, provisionedPins.toArray(new GpioPinDigitalInput[0]));
 
-		System.out.println("ButtonBoard ready!");
+		logger.info("ButtonBoard ready!");
 
 		// keep program running until user aborts (CTRL-C)
 		while (true) {
@@ -152,17 +160,16 @@ public class ButtonBoard {
 
 	static public void writeReport(char[] report) throws IOException, InterruptedException {
 
-		System.out.println("Sending bytes:");
-		System.out.println(String.format("0: 0x%08X", (int)report[0]));
-		System.out.println(String.format("1: 0x%08X", (int)report[1]));
+		logger.trace("Sending bytes:");
+		logger.trace(String.format("0: 0x%08X", (int)report[0]));
+		logger.trace(String.format("1: 0x%08X", (int)report[1]));
 
 		try {
 			out.write(report);
-			System.out.println(report);
 			out.flush();
 
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		}
 
 	}
