@@ -60,7 +60,7 @@ public class ButtonBoard {
 		try{
 			out = new FileOutputStream(devHID);		
 		} catch (Exception ex) {
-			logger.error(ex.getMessage());
+			logger.fatal("Failed to open device:", ex);
 			return;
 		}
 
@@ -73,7 +73,7 @@ public class ButtonBoard {
 		for (Pin pin : msg.keySet()) {
 			try {
 				if(pin.getSupportedPinPullResistance().contains(PinPullResistance.PULL_DOWN)) {
-					logger.error("Pin " + pin + " does not support pulldown, please use another.");
+					logger.fatal("Pin " + pin + " does not support pulldown, please use another.");
 					return;
 				}
 				
@@ -111,7 +111,7 @@ public class ButtonBoard {
 					try {
 						writeReport(msgReport);
 					} catch (IOException | InterruptedException e) {
-						logger.error("Writing report", e);
+						logger.error("Failed to write report:", e);
 					}
 
 				} else {
@@ -125,7 +125,7 @@ public class ButtonBoard {
 					try {
 						writeReport(msgReport);
 					} catch (IOException | InterruptedException e) {
-						logger.error("Writing report", e);
+						logger.error("Failed to write report:", e);
 					}
 				}
 			}
@@ -147,7 +147,7 @@ public class ButtonBoard {
 			out.flush();
 
 		} catch (IOException e) {
-			logger.error("Writing USB", e);
+			logger.error("Failed writing to USB:", e);
 		}
 	}
 }
