@@ -1,6 +1,6 @@
 package org.frc4453.tools;
 
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,15 +23,15 @@ import com.pi4j.platform.PlatformAlreadyAssignedException;
 
 public class ButtonBoard {
 
-	static char[] msgReport = new char[] { '\0', '\0'};
-	final static char[] endReport = new char[] { '\0', '\0'};
+	static byte[] msgReport = new byte[] { 0, 0};
+	final static byte[] endReport = new byte[] { 0, 0};
 
 	final static String devHID = "/dev/hidg0";
 
 	final static int NUM_BUTTONS = 20;
 	final static int MS_DEBOUNCE = 1000;
 
-	static FileWriter out = null;
+	static FileOutputStream out = null;
 
 	final static Map<Pin, Integer> msg = new HashMap<Pin, Integer>() {
 		private static final long serialVersionUID = 1L;
@@ -103,7 +103,7 @@ public class ButtonBoard {
 		System.out.println("<-- The Pi4J Project -->\nGPIO Listen (All Pins) Example");
 
 		System.out.println("Opening file: "+devHID);
-		out = new FileWriter(devHID);		
+		out = new FileOutputStream(devHID);		
 
 		// create GPIO controller
 		final GpioController gpio = GpioFactory.getInstance();
@@ -154,8 +154,8 @@ public class ButtonBoard {
 					System.out.println("Setting button on USB");
 
 					// shift button into message
-						msgReport[1] |= (char) ((msg.get(pin) >>> 8) & 0x00ff);
-						msgReport[0] |= (char) (msg.get(pin) & 0x00ff);						
+						msgReport[1] |= (byte) ((msg.get(pin) >>> 8) & 0x00ff);
+						msgReport[0] |= (byte) (msg.get(pin) & 0x00ff);						
 									
 					// write message to host computer
 					try {
@@ -169,8 +169,8 @@ public class ButtonBoard {
 					System.out.println("Resetting button on USB");	
 
 					// shift button into message
-					msgReport[1] &= (char) ~((msg.get(pin) >>> 8) & 0x00ff);
-					msgReport[0] &= (char) ~(msg.get(pin) & 0x00ff);						
+					msgReport[1] &= (byte) ~((msg.get(pin) >>> 8) & 0x00ff);
+					msgReport[0] &= (byte) ~(msg.get(pin) & 0x00ff);						
 
 					// write message to host computer
 					try {
@@ -195,7 +195,7 @@ public class ButtonBoard {
 		}
 	}
 
-	static public void writeReport(char[] report) throws IOException, InterruptedException {
+	static public void writeReport(byte[] report) throws IOException, InterruptedException {
 
 		System.out.println("Sending bytes:");
 		System.out.println(String.format("0: 0x%08X", (int)report[0]));
