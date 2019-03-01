@@ -198,8 +198,8 @@ public class ButtonBoard {
 	static public void writeReport(char[] report) throws IOException, InterruptedException {
 
 		System.out.println("Sending bytes:");
-		System.out.println(String.format("0: 0x%08X", report[0]));
-		System.out.println(String.format("1: 0x%08X", report[1]));
+		System.out.println(String.format("0: 0x%08X", (int)report[0]));
+		System.out.println(String.format("1: 0x%08X", (int)report[1]));
 
 		try {
 			out.write(report);
