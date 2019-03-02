@@ -1,1 +1,2 @@
-rootProject.name = 'ButtonBoard'
+include 'ButtonBoard'
+include 'LedStrips'
