@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="warn" name="SailNet" monitorInterval="60">
+<Configuration status="warn" name="ButtonBoard" monitorInterval="60">
 	<Properties>
 		<Property name="baseDir">../logs</Property>
 	</Properties>
@@ -10,8 +10,8 @@
 		</Console>
 
 		<RollingFile name="RollingFile"
-			fileName="${baseDir}/SailNet.log" immediateFlush="true"
-			filePattern="${baseDir}/$${date:yyyy-MM}/SailNet-%d{yyyy-MM-dd}.log.gz">
+			fileName="${baseDir}/ButtonBoard.log" immediateFlush="true"
+			filePattern="${baseDir}/$${date:yyyy-MM}/ButtonBoard-%d{yyyy-MM-dd}.log.gz">
 			<PatternLayout>
 				<pattern>%d{MMM dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</pattern>
 				<!-- pattern>%d %p %c{1.} [%t] %m%n</pattern -->
@@ -22,34 +22,18 @@
 			</Policies>
 			<DefaultRolloverStrategy>
 				<Delete basePath="${baseDir}" maxDepth="2">
-					<IfFileName glob="*/SailNet-*.log.gz" />
+					<IfFileName glob="*/ButtonBoard-*.log.gz" />
 					<IfLastModified age="30d" />
 				</Delete>
 			</DefaultRolloverStrategy>
-		</RollingFile>
+		</RollingFile>v
 	</Appenders>
 
 	<Loggers>		<!-- ALL < DEBUG < INFO < WARN < ERROR < FATAL < OFF -->
-		<Logger name="com.sailnet.testlog4j2" level="ERROR">
+		<Logger name="org.frc4453.tools" level="ERROR">
 			<AppenderRef ref="RollingFile"/>
 		</Logger>
 		
-		<Logger name="com.sailnet.common" level="WARN">
-			<AppenderRef ref="RollingFile"/>
-		</Logger>
-		
-		<Logger name="com.sailnet.sailnav" level="WARN">
-			<AppenderRef ref="RollingFile"/>
-		</Logger>
-		
-		<Logger name="com.sailnet.sailgps" level="WARN">
-			<AppenderRef ref="RollingFile"/>
-		</Logger>
-		
-		<Logger name="com.sailnet.sailimu" level="WARN">
-			<AppenderRef ref="RollingFile"/>
-		</Logger>
-
 		<Root level="debug">
 			<AppenderRef ref="Console" />
 			<AppenderRef ref="RollingFile" />
