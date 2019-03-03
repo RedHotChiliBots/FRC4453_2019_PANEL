@@ -1,0 +1,9 @@
+[Unit]
+Description=Button Board
+
+[Service]
+ExecStart=/home/pi/ButtonBoard/ButtonBoard.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

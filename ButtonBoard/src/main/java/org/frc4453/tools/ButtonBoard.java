@@ -2,7 +2,9 @@ package org.frc4453.tools;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.pi4j.io.gpio.GpioController;
@@ -15,6 +17,7 @@ import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import com.pi4j.platform.PlatformAlreadyAssignedException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,7 +30,7 @@ public class ButtonBoard {
 	final static String devHID = "/dev/hidg0";
 
 	final static int NUM_BUTTONS = 20;
-	final static int MS_DEBOUNCE = 1000;
+	final static int MS_DEBOUNCE = 100;
 
 	static final Map<Pin, Integer> msg = new HashMap<Pin, Integer>() {
 		private static final long serialVersionUID = 1L;
@@ -68,21 +71,35 @@ public class ButtonBoard {
 		// create GPIO controller
 		final GpioController gpio = GpioFactory.getInstance();
 
-		// provision GPIO input pins with its internal pull down resistor set and
-		// debounce 1000ms
-		for (Pin pin : msg.keySet()) {
+
+		// create pins collection to store provisioned pin instances
+		List<GpioPinDigitalInput> provisionedPins = new ArrayList<>();
+		Pin[] pins;
+
+		// remove pins that can not be pulled down
+		pins = RaspiPin.allPins();
+		pins = ArrayUtils.removeElement(pins, RaspiPin.GPIO_00);
+		pins = ArrayUtils.removeElement(pins, RaspiPin.GPIO_08);
+		pins = ArrayUtils.removeElement(pins, RaspiPin.GPIO_09);
+		pins = ArrayUtils.removeElement(pins, RaspiPin.GPIO_30);
+		pins = ArrayUtils.removeElement(pins, RaspiPin.GPIO_31);
+
+		// provision GPIO input pins with its internal pull down resistor set and debounce 1000ms
+		for (Pin pin : pins) {
 			try {
-				if(pin.getSupportedPinPullResistance().contains(PinPullResistance.PULL_DOWN)) {
-					logger.fatal("Pin " + pin + " does not support pulldown, please use another.");
-					return;
-				}
+				//if(pin.getSupportedPinPullResistance().contains(PinPullResistance.PULL_DOWN)) {
+				//	logger.fatal("Pin " + pin + " does not support pulldown, please use another.");
+				//	return;
+				//}
 				
 				GpioPinDigitalInput provisionedPin = gpio.provisionDigitalInputPin(pin, PinPullResistance.PULL_DOWN);
+				provisionedPins.add(provisionedPin);
 
 				provisionedPin.setDebounce(MS_DEBOUNCE);
 
 				// unexport the provisioned GPIO pins when program exits
 				provisionedPin.setShutdownOptions(true);
+
 			} catch (Exception ex) {
 				logger.error(ex.getMessage());
 			}
@@ -129,7 +146,7 @@ public class ButtonBoard {
 					}
 				}
 			}
-		}, msg.keySet().toArray(new GpioPinDigitalInput[0]));
+		}, provisionedPins.toArray(new GpioPinDigitalInput[0]));
 
 		logger.info("ButtonBoard ready!");
 
