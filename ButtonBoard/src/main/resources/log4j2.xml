@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="warn" name="ButtonBoard" monitorInterval="60">
 	<Properties>
-		<Property name="baseDir">../logs</Property>
+		<Property name="baseDir">logs</Property>
 	</Properties>
 
 	<Appenders>
@@ -30,14 +30,13 @@
 	</Appenders>
 
 	<Loggers>		<!-- ALL < DEBUG < INFO < WARN < ERROR < FATAL < OFF -->
-		<Logger name="org.frc4453.tools" level="ERROR">
+		<!-- Logger name="org.frc4453.tools" level="ERROR">
 			<AppenderRef ref="RollingFile"/>
-		</Logger>
+		</Logger -->
 		
 		<Root level="debug">
-			<AppenderRef ref="Console" />
-			<AppenderRef ref="RollingFile" />
 			<!-- AppenderRef ref="Console" / -->
+			<AppenderRef ref="RollingFile" />
 		</Root>
 	</Loggers>
 </Configuration>

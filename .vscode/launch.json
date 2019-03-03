@@ -1,0 +1,11 @@
+{
+	"configurations": [
+		{
+			"type": "java",
+			"name": "CodeLens (Launch) - ButtonBoard",
+			"request": "launch",
+			"mainClass": "org.frc4453.tools.ButtonBoard",
+			"projectName": "ButtonBoard"
+		}
+	]
+}

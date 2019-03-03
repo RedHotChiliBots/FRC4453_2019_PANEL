@@ -1,4 +1,5 @@
 plugins {
+    id "org.hidetake.ssh" version '2.9.0'
     id "jaci.gradle.EmbeddedTools" version "2018.12.18"
 }
 apply plugin: 'java'
@@ -12,16 +13,20 @@ ssh.settings {
 	knownHosts = allowAnyHosts
 }
 	
-remotes {
+ssh.remotes {
   ButtonBoard {
   	role('ButtonBoard')
     host = 'raspberrypi.local'
     user = 'pi'
-    identity = file('/home/pi/.ssh/id_rsa')
+    password = 'raspberry'
+//    identity = file('/home/pi/.ssh/id_rsa')
   }
 }
 
-ext.tgtDir = '/home/pi/'+project.name+'/'
+ext {
+    tgtDir = '/home/pi/'+project.name+'/'
+//    srcDir = ssh.projectDir+'\\misc\\';
+}
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -52,7 +57,7 @@ dependencies {
 }
 
 jar {
-    baseName = project.name
+   baseName = project.name
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
@@ -61,21 +66,29 @@ jar {
     }
 }
 
-task deploy (dependsOn: 'build') {
-	doLast {
+//task deploy (dependsOn: 'build') {
+/*
+deploy {
+//	doLast {
 		ssh.run {
-			session(remotes.ButtonBoard) {
-				println 'Hostname: '+remotes.ButtonBoard.host
+			session(ssh.remotes.ButtonBoard) {
+                println 'Hostname: '+ssh.remotes.ButtonBoard.host
+				println 'Creating target directory: '+tgtDir
+                execute 'mkdir -p ~/ButtonBoard'
+                println 'Copying service files from: '+projectDir+'\\misc\\'
+//                put from: "${projectDir}/misc", into: tgtDir
+                put from: new File("${projectDir}/misc").listFiles(), into: tgtDir
+//                put from: srcDir+project.name+'.service', into: tgtDir
 				execute 'sudo systemctl stop '+project.name+'.service', ignoreError: true
 				println 'Moving '+jar.archivePath+' to '+tgtDir
 				put from: jar.archivePath, into: tgtDir
-				execute 'ln -sf '+tgtDir+jar.archiveName+' '+tgtDir+jar.baseName+'.jar'
+				//execute 'ln -sf '+tgtDir+jar.archiveName+' '+tgtDir+jar.baseName+'.jar'
 				execute 'sync; sudo systemctl daemon-reload; sudo systemctl start '+project.name+'.service'+'; sudo systemctl status '+project.name+'.service'
 			}
 		}
-	}
+//	}
 }
-
+*/
 /*
 deploy {
     targets {
